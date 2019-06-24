@@ -165,14 +165,8 @@ architecture SYN of target_top is
 	signal led_red : std_logic := '0';
 	signal ir : std_logic;
 
-	signal joystick1 : unsigned(5 downto 0);
-	signal joystick2 : unsigned(5 downto 0);
-	signal joystick3 : unsigned(5 downto 0);
-	signal joystick4 : unsigned(5 downto 0);
-	
-	signal ir_joya : unsigned(5 downto 0);
-	signal ir_joyb : unsigned(5 downto 0);
 	signal ir_start : std_logic;
+	signal ir_start2 : std_logic;
 	signal ir_coin : std_logic;
 
 -- C64 keyboard
@@ -202,10 +196,6 @@ architecture SYN of target_top is
 	signal c64_joy2 : unsigned(5 downto 0);
 	signal gp1_run : std_logic;
 	signal gp1_select : std_logic;
-	signal joy1 : unsigned(7 downto 0);
-	signal joy2 : unsigned(7 downto 0);
-	signal joy3 : unsigned(7 downto 0);
-	signal joy4 : unsigned(7 downto 0);
 	signal ir_d : std_logic;
 	signal debug1 : std_logic_vector(31 downto 0);
 	signal debug2 : std_logic_vector(31 downto 0);
@@ -343,8 +333,8 @@ begin
 
 				joystick1 => c64_joy1,
 				joystick2 => c64_joy2,
-				joystick3 => joystick3,
-				joystick4 => joystick4,
+--				joystick3 => joystick3,
+--				joystick4 => joystick4,
 				keys => c64_keys,
 				keys_valid => keys_valid,
 --				restore_key_n => restore_n
@@ -367,29 +357,26 @@ begin
 end process;
 
 		
---joy1<=not gp1_run & not gp1_select & (c64_joy1 and cdtv_joy1);
 -- Update keypresses only when joystick is inactive.
 process(CLOCK_100)
 begin
 	if rising_edge(CLOCK_100) then
 		if keys_valid='1' then
-			gp1_run<=c64_keys(11) and c64_keys(56);
-			gp1_select<=c64_keys(60);
+			ir_coin<=c64_keys(63);
+			ir_start<=c64_keys(56) and c64_keys(38);
+			ir_start2<=c64_keys(16); -- FF button on CDTV pad.
 		end if;
 	end if;
 end process;
 
-joy1<=gp1_run & gp1_select & c64_joy1;
-joy2<="11" & c64_joy2;
-joy3<="11" & joystick3;
-joy4<="11" & joystick4;
+joya<=c64_joy1;
+joyb<=c64_joy2;
 
 	ram_clk<='0'; -- Freeze SDRAM since we can't access sd_cs
 
 	switches<="00";
 	buttons <= freeze_btn & usart_cts;
 
--- // Need Clock 50Mhz to Clock 27Mhz
 
 	my1Mhz : entity work.chameleon_1mhz
 		generic map (
@@ -486,6 +473,9 @@ joy4<="11" & joystick4;
 				count := count + 1;
 				init <= '1';
 			end if;
+			if reset_btn='0' then
+				count:=X"0000";
+			end if;
 		end if;
 	end process;
 
@@ -513,8 +503,8 @@ joy4<="11" & joystick4;
        switches_i(1) <= switches(1);
 
        GEN_NO_JAMMA : if PACE_JAMMA = PACE_JAMMA_NONE generate
-		inputs_i.jamma_n.coin(1) <= buttons(0) and not ir_coin;
-		inputs_i.jamma_n.p(1).start <= buttons(1) and not ir_start;
+		inputs_i.jamma_n.coin(1) <= buttons(0) and ir_coin;
+		inputs_i.jamma_n.p(1).start <= buttons(1) and ir_start;
 		inputs_i.jamma_n.p(1).up <= joya(0);
 		inputs_i.jamma_n.p(1).down <= joya(1);
 		inputs_i.jamma_n.p(1).left <= joya(2);
@@ -524,6 +514,7 @@ joy4<="11" & joystick4;
 		inputs_i.jamma_n.p(1).button(3) <= '1';
 		inputs_i.jamma_n.p(1).button(4) <= '1';
 		inputs_i.jamma_n.p(1).button(5) <= '1';
+		inputs_i.jamma_n.p(2).start <= ir_start2;
 		inputs_i.jamma_n.p(2).up <= joyb(0);
 		inputs_i.jamma_n.p(2).down <= joyb(1);
 		inputs_i.jamma_n.p(2).left <= joyb(2);
@@ -538,7 +529,7 @@ joy4<="11" & joystick4;
 	-- not currently wired to any inputs
 	inputs_i.jamma_n.coin_cnt <= (others => '1');
 	inputs_i.jamma_n.coin(2) <= '1';
-	inputs_i.jamma_n.p(2).start <= '1';
+--	inputs_i.jamma_n.p(2).start <= '1';
 --	inputs_i.jamma_n.p(2).up <= '1';
 --	inputs_i.jamma_n.p(2).down <= '1';
 --	inputs_i.jamma_n.p(2).left <= '1';

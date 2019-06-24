@@ -210,7 +210,9 @@ begin
 				joystick_b => ir_joystick2
 			);
 
-			ir_keys <= (not ir_runstop) & "11" & (not ir_n) & "111" & (not (ir_up or ir_down)) &
+			-- AMR - slightly updated key mapping for PACE cores.
+			-- Power button added to Run/Stop mapping
+			ir_keys <= (not (ir_runstop or ir_right_button)) & "11" & (not ir_n) & "111" & (not (ir_up or ir_down)) &
 					"1111111" & (not (ir_f5 or ir_f6)) &
 					"1111111" & (not (ir_f3 or ir_f4)) &
 					(not ir_space) & (not (ir_left or ir_up or ir_f2 or ir_f4 or ir_f6 or ir_f8)) & "11111" & (not (ir_f1 or ir_f2)) &
