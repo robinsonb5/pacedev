@@ -117,7 +117,7 @@ architecture SYN of target_top is
 
 
   signal init       	: std_logic := '1';  
-  signal CLOCK_100	: std_logic;
+  signal sysclk	: std_logic;
   
   signal clkrst_i       : from_CLKRST_t;
   signal buttons_i      : from_BUTTONS_t;
@@ -233,7 +233,7 @@ begin
 --			resetCycles => reset_cycles
 --		)
 --		port map (
---			clk => CLOCK_100,
+--			clk => sysclk,
 --			enable => '1',
 --
 --			button => not reset_btn,
@@ -247,7 +247,7 @@ begin
 -- -----------------------------------------------------------------------
 	io_ps2iec_inst : entity work.chameleon2_io_ps2iec
 		port map (
-			clk => CLOCK_100,
+			clk => sysclk,
 
 			ps2iec_sel => ps2iec_sel,
 			ps2iec => ps2iec,
@@ -268,7 +268,7 @@ begin
 -- -----------------------------------------------------------------------
 	io_shiftreg_inst : entity work.chameleon2_io_shiftreg
 		port map (
-			clk => CLOCK_100,
+			clk => sysclk,
 
 			ser_out_clk => ser_out_clk,
 			ser_out_dat => ser_out_dat,
@@ -297,7 +297,7 @@ begin
 				enable_c64_4player => true
 			)
 			port map (
-				clk => CLOCK_100,
+				clk => sysclk,
 				ena_1mhz => ena_1mhz,
 				phi2_n => phi2_n,
 				dotclock_n => dotclk_n,
@@ -348,9 +348,9 @@ begin
 debug4 <= no_clock & docking_station & std_logic_vector(c64_keys(29 downto 0));
 	
 -- Synchronise IR signal
-process (CLOCK_100)
+process (sysclk)
 begin
-	if rising_edge(CLOCK_100) then
+	if rising_edge(sysclk) then
 		ir_d<=ir_data;
 		ir<=ir_d;
 	end if;
@@ -358,9 +358,9 @@ end process;
 
 		
 -- Update keypresses only when joystick is inactive.
-process(CLOCK_100)
+process(sysclk)
 begin
-	if rising_edge(CLOCK_100) then
+	if rising_edge(sysclk) then
 		if keys_valid='1' then
 			ir_coin<=c64_keys(63);
 			ir_start<=c64_keys(56) and c64_keys(38);
@@ -383,14 +383,14 @@ joyb<=c64_joy2;
 			clk_ticks_per_usec => 100
 		)
 		port map (
-			clk => CLOCK_100,
+			clk => sysclk,
 			ena_1mhz => ena_1mhz,
 			ena_1mhz_2 => open
 		);
 
 	my1Khz : entity work.chameleon_1khz
 		port map (
-			clk => CLOCK_100,
+			clk => sysclk,
 			ena_1mhz => ena_1mhz,
 			ena_1khz => ena_1khz
 		); 
@@ -400,7 +400,7 @@ joyb<=c64_joy2;
 --
 --myIr : entity work.chameleon_cdtv_remote
 --	port map (
---		clk => CLOCK_100,
+--		clk => sysclk,
 --		ena_1mhz => ena_1mhz,
 --		ir => ir,
 --
@@ -436,18 +436,18 @@ joyb<=c64_joy2;
 
   BLK_CLOCKING : block
   begin
-    clkrst_i.clk_ref <= CLOCK_100;
+    clkrst_i.clk_ref <= clk50m;
   
     GEN_PLL : if PACE_HAS_PLL generate
     
-      pll_50_inst : entity work.pllclk_ez --entity work.pllclk_ez  --entity work.pll
+      pll_50_inst : entity work.pllclk_ez -- entity work.pllclk_ez  --entity work.pll
         port map
         (
           inclk0  => clk50m,
-			 c0		=> CLOCK_100,	-- system clock
-          c1      => clkrst_i.clk(1)  --video clock
+			 c0		=> clkrst_i.clk(0),  -- system clock
+          c1      => clkrst_i.clk(1),  -- video clock
+ 			 c2		=> sysclk	-- aux clock
         );
-		  clkrst_i.clk(0)<=CLOCK_100;
 
     end generate GEN_PLL;
     
@@ -463,10 +463,10 @@ joyb<=c64_joy2;
 	
   -- FPGA STARTUP
 	-- should extend power-on reset if registers init to '0'
-	process (CLOCK_100)
+	process (sysclk)
 		variable count : std_logic_vector (15 downto 0) := (others => '0');
 	begin
-		if rising_edge(CLOCK_100) then
+		if rising_edge(sysclk) then
 			if count = X"FFFF" then
 				init <= '0';
 			else
@@ -559,14 +559,14 @@ joyb<=c64_joy2;
   
     dacl : entity work.sigma_delta_dac
       port map (
-        clk     => CLOCK_100,
+        clk     => sysclk,
         din     => audio_o.ldata(15 downto 8),
         dout    => sigma_l
       );        
 
     dacr : entity work.sigma_delta_dac
       port map (
-        clk     => CLOCK_100,
+        clk     => sysclk,
         din     => audio_o.rdata(15 downto 8),
         dout    => sigma_r
       );        
