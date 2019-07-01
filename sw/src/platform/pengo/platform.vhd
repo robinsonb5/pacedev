@@ -209,6 +209,9 @@ begin
                '0';
   -- SOUND $9000-$901F
 	snd_o.wr <= uPmemwr when STD_MATCH(uP_addr, X"90"&"000-----") else '0';
+	-- AMR - reinstated these
+	snd_o.a <= uP_addr(snd_o.a'range);
+	snd_o.d <= uP_datao;
 
 	-- bank latches
 	process (clk_30M, clk_3M_ena, cpu_reset)

@@ -157,7 +157,6 @@ architecture SYN of target_top is
 -- System state
 	signal no_clock : std_logic;
 	signal docking_station : std_logic;
-	signal reset : std_logic;
 	signal button_reset_n : std_logic;
 
 -- LEDs
@@ -274,8 +273,8 @@ begin
 			ser_out_dat => ser_out_dat,
 			ser_out_rclk => ser_out_rclk,
 
-			reset_c64 => reset,
-			reset_iec => reset,
+			reset_c64 => init,
+			reset_iec => init,
 			ps2_mouse_clk => ps2_mouse_clk_out,
 			ps2_mouse_dat => ps2_mouse_dat_out,
 			ps2_keyboard_clk => ps2_keyboard_clk_out,
