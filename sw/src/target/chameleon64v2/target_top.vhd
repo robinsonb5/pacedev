@@ -262,6 +262,11 @@ begin
 			iec_dat => open  -- iec_dat_in
 		);
 
+	-- Set PS2 output signals high - otherwise the keyboard can't talk.
+	
+	ps2_keyboard_dat_out<='1';
+	ps2_keyboard_clk_out<='1';
+
 -- -----------------------------------------------------------------------
 -- LED, PS2 and reset shiftregister
 -- -----------------------------------------------------------------------
@@ -537,7 +542,12 @@ joyb<=c64_joy2;
 	inputs_i.jamma_n.service <= '1';
 	inputs_i.jamma_n.tilt <= '1';
 	inputs_i.jamma_n.test <= '1';
-		
+
+	inputs_i.ps2_kclk <= ps2_keyboard_clk_in;
+   inputs_i.ps2_kdat <= ps2_keyboard_dat_in;
+   inputs_i.ps2_mclk <= '0';
+   inputs_i.ps2_mdat <= '0';
+	
   BLK_VIDEO : block
   begin
 
